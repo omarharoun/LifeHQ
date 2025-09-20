@@ -24,37 +24,45 @@ export const WorkspaceScreen: React.FC = () => {
     setSyncQueueCount,
   } = useUIStore();
 
-  // Fetch initial data
-  const { data: nodes } = useNodes(currentWorkspace?.id);
-  const { data: links } = useLinks(currentWorkspace?.id);
+  // Skip backend data fetching in demo mode
+  const nodes: Node[] = [];
+  const links: Link[] = [];
 
-  // Setup realtime sync
-  useRealtimeSync(currentWorkspace?.id);
-
-  // Initialize sync queue and monitor queue length
+  // Initialize demo data
   useEffect(() => {
-    const syncQueue = SyncQueue.getInstance();
-    syncQueue.initialize();
-
-    const interval = setInterval(() => {
-      setSyncQueueCount(syncQueue.getQueueLength());
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [setSyncQueueCount]);
-
-  // Update local state when data changes
-  useEffect(() => {
-    if (nodes) {
-      setNodes(nodes);
-    }
-  }, [nodes, setNodes]);
-
-  useEffect(() => {
-    if (links) {
-      setLinks(links);
-    }
-  }, [links, setLinks]);
+    // Set some demo nodes for the workspace
+    const demoNodes = [
+      {
+        id: 'demo-node-1',
+        workspace_id: currentWorkspace?.id || 'demo',
+        owner: 'demo-user',
+        type: 'action' as const,
+        title: 'Welcome to Dots!',
+        content: { text: 'This is your first node' },
+        position: { x: 100, y: 100 },
+        style: { color: '#4299e1' },
+        properties: { tags: ['welcome'] },
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      {
+        id: 'demo-node-2',
+        workspace_id: currentWorkspace?.id || 'demo',
+        owner: 'demo-user',
+        type: 'knowledge' as const,
+        title: 'Tap to create nodes',
+        content: { text: 'Tap anywhere on the canvas to create new nodes' },
+        position: { x: 300, y: 200 },
+        style: { color: '#48bb78' },
+        properties: { tags: ['help'] },
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+    ];
+    
+    setNodes(demoNodes);
+    setLinks([]);
+  }, [currentWorkspace?.id, setNodes, setLinks]);
 
   const handleBackPress = () => {
     navigation.goBack();
@@ -83,9 +91,7 @@ export const WorkspaceScreen: React.FC = () => {
         <Text style={styles.title}>{currentWorkspace.title}</Text>
         
         <View style={styles.syncStatus}>
-          {syncQueueCount > 0 && (
-            <Text style={styles.syncText}>Syncing ({syncQueueCount})</Text>
-          )}
+          <Text style={styles.syncText}>DEMO</Text>
         </View>
       </View>
 

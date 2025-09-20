@@ -98,19 +98,26 @@ export const Canvas: React.FC = () => {
 
   const handleCreateNode = async (x: number, y: number) => {
     try {
-      const user = await getCurrentUser();
-      if (!user || !currentWorkspace) return;
+      if (!currentWorkspace) return;
 
-      await createNodeMutation.mutateAsync({
+      // Create demo node without backend
+      const demoNode = {
+        id: `demo-node-${Date.now()}`,
         workspace_id: currentWorkspace.id,
-        owner: user.id,
-        type: 'action',
+        owner: 'demo-user',
+        type: 'action' as const,
         title: 'New Node',
         content: {},
-        position: { x: x - 30, y: y - 30 }, // Center the node on tap point
-        style: {},
+        position: { x: x - 30, y: y - 30 },
+        style: { color: '#4299e1' },
         properties: {},
-      });
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // Add to local store
+      const { addNode } = useUIStore.getState();
+      addNode(demoNode);
     } catch (error) {
       Alert.alert('Error', 'Failed to create node');
       console.error('Create node error:', error);
@@ -131,17 +138,24 @@ export const Canvas: React.FC = () => {
     }
 
     try {
-      const user = await getCurrentUser();
-      if (!user || !currentWorkspace) return;
+      if (!currentWorkspace) return;
 
-      await createLinkMutation.mutateAsync({
+      // Create demo link without backend
+      const demoLink = {
+        id: `demo-link-${Date.now()}`,
         workspace_id: currentWorkspace.id,
-        owner: user.id,
+        owner: 'demo-user',
         from_node: connectionStart,
         to_node: toNodeId,
         label: '',
         metadata: {},
-      });
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // Add to local store
+      const { addLink } = useUIStore.getState();
+      addLink(demoLink);
 
       setConnecting(false);
       setConnectionStart(null);

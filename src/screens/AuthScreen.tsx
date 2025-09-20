@@ -13,31 +13,51 @@ import { supabase } from '../lib/supabaseClient';
 
 export const AuthScreen: React.FC = () => {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSignUp, setIsSignUp] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  const handleSignIn = async () => {
-    if (!email.trim()) {
-      Alert.alert('Error', 'Please enter your email address');
+  const handleAuth = async () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Error', 'Please enter both email and password');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters');
       return;
     }
 
     setLoading(true);
     
     try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email: email.trim().toLowerCase(),
-        options: {
-          emailRedirectTo: undefined, // Disable redirect for mobile
-        },
-      });
+      if (isSignUp) {
+        // Sign up
+        const { error } = await supabase.auth.signUp({
+          email: email.trim().toLowerCase(),
+          password: password,
+        });
 
-      if (error) {
-        Alert.alert('Error', error.message);
+        if (error) {
+          Alert.alert('Error', error.message);
+        } else {
+          Alert.alert(
+            'Success!',
+            'Account created successfully. You can now sign in.'
+          );
+          setIsSignUp(false);
+        }
       } else {
-        Alert.alert(
-          'Check your email',
-          `We've sent a magic link to ${email}. Click the link to sign in.`
-        );
+        // Sign in
+        const { error } = await supabase.auth.signInWithPassword({
+          email: email.trim().toLowerCase(),
+          password: password,
+        });
+
+        if (error) {
+          Alert.alert('Error', error.message);
+        }
+        // Success - user will be automatically redirected
       }
     } catch (error) {
       Alert.alert('Error', 'An unexpected error occurred');
@@ -73,18 +93,49 @@ export const AuthScreen: React.FC = () => {
             editable={!loading}
           />
 
+          <Text style={styles.label}>Password</Text>
+          <TextInput
+            style={styles.input}
+            value={password}
+            onChangeText={setPassword}
+            placeholder="Enter your password"
+            secureTextEntry
+            autoCapitalize="none"
+            autoCorrect={false}
+            editable={!loading}
+          />
+
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleSignIn}
+            onPress={handleAuth}
             disabled={loading}
           >
             <Text style={styles.buttonText}>
-              {loading ? 'Sending...' : 'Send Magic Link'}
+              {loading 
+                ? (isSignUp ? 'Creating Account...' : 'Signing In...') 
+                : (isSignUp ? 'Sign Up' : 'Sign In')
+              }
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.toggleButton}
+            onPress={() => setIsSignUp(!isSignUp)}
+            disabled={loading}
+          >
+            <Text style={styles.toggleText}>
+              {isSignUp 
+                ? 'Already have an account? Sign In' 
+                : "Don't have an account? Sign Up"
+              }
             </Text>
           </TouchableOpacity>
 
           <Text style={styles.helpText}>
-            We'll send you a secure link to sign in without a password.
+            {isSignUp 
+              ? 'Create an account to start organizing your dots'
+              : 'Sign in to access your workspaces'
+            }
           </Text>
         </View>
 
@@ -162,6 +213,16 @@ const styles = StyleSheet.create({
     color: '#718096',
     textAlign: 'center',
     lineHeight: 20,
+  },
+  toggleButton: {
+    marginTop: 16,
+    paddingVertical: 8,
+  },
+  toggleText: {
+    fontSize: 14,
+    color: '#4299e1',
+    textAlign: 'center',
+    fontWeight: '500',
   },
   footer: {
     alignItems: 'center',

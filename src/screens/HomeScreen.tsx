@@ -21,19 +21,17 @@ export const HomeScreen: React.FC = () => {
 
   const handleCreateWorkspace = async () => {
     try {
-      const user = await getCurrentUser();
-      if (!user) {
-        Alert.alert('Error', 'You must be signed in to create a workspace');
-        return;
-      }
-
-      const workspace = await createWorkspaceMutation.mutateAsync({
-        owner: user.id,
+      // Create a demo workspace without backend
+      const demoWorkspace = {
+        id: `demo-workspace-${Date.now()}`,
+        owner: 'demo-user',
         title: 'New Workspace',
         metadata: {},
-      });
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
 
-      setCurrentWorkspace(workspace);
+      setCurrentWorkspace(demoWorkspace);
       navigation.navigate('Workspace' as never);
     } catch (error) {
       Alert.alert('Error', 'Failed to create workspace');
@@ -46,14 +44,25 @@ export const HomeScreen: React.FC = () => {
     navigation.navigate('Workspace' as never);
   };
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      Alert.alert('Error', 'Failed to sign out');
-      console.error('Sign out error:', error);
+  // Demo workspaces for offline mode
+  const demoWorkspaces = [
+    {
+      id: 'demo-1',
+      owner: 'demo-user',
+      title: 'My First Workspace',
+      metadata: {},
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+    {
+      id: 'demo-2', 
+      owner: 'demo-user',
+      title: 'Ideas & Projects',
+      metadata: {},
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     }
-  };
+  ];
 
   const renderWorkspace = ({ item }: { item: Workspace }) => (
     <TouchableOpacity
@@ -67,39 +76,22 @@ export const HomeScreen: React.FC = () => {
     </TouchableOpacity>
   );
 
-  if (isLoading) {
-    return (
-      <View style={styles.centered}>
-        <Text>Loading workspaces...</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Your Workspaces</Text>
-        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-          <Text style={styles.signOutText}>Sign Out</Text>
-        </TouchableOpacity>
+        <View style={styles.demoBadge}>
+          <Text style={styles.demoText}>DEMO MODE</Text>
+        </View>
       </View>
 
       <View style={styles.content}>
-        {workspaces && workspaces.length > 0 ? (
-          <FlatList
-            data={workspaces}
-            renderItem={renderWorkspace}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.list}
-          />
-        ) : (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyTitle}>No workspaces yet</Text>
-            <Text style={styles.emptySubtitle}>
-              Create your first workspace to start organizing your dots
-            </Text>
-          </View>
-        )}
+        <FlatList
+          data={demoWorkspaces}
+          renderItem={renderWorkspace}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.list}
+        />
       </View>
 
       <View style={styles.footer}>
@@ -143,16 +135,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#2d3748',
   },
-  signOutButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+  demoBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
+    backgroundColor: '#4299e1',
   },
-  signOutText: {
-    fontSize: 14,
-    color: '#718096',
+  demoText: {
+    fontSize: 12,
+    color: '#ffffff',
+    fontWeight: '600',
   },
   content: {
     flex: 1,
